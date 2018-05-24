@@ -20,3 +20,4 @@ selenium3.x 调用浏览器必须下载一个类似不定的文件，比如firef
 安装 BeautifulSoup
 
     sudo pip install BeautifulSoup
+    
