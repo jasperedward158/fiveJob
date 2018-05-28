@@ -114,7 +114,10 @@ class JobSpider:
                 date_time = info.find('span', class_='t5').text
 
                 # 获取职位详情
-                self.job_spider(href, isPosition = 1)
+                isPosition = 1
+                position_content = self.job_spider(href, isPosition)
+                # print(position_content)
+                break
 
                 content = unicode(post) + '-' * 10 + unicode(compay) + '-' * 10 + unicode(locate) + '-' * 10 + unicode(
                     salary) + '-' * 5 + unicode(date_time) + '-' * 5 + href
@@ -155,10 +158,60 @@ class JobSpider:
         :param dr:
         :return:
         '''
-        html_const = dr.page_source
-        print(html_const)
-        #infos = soup.find("div", class_="dw_table")
-        break
+        while True:
+            html_const = dr.page_source
+            print("position info")
+            soup = BeautifulSoup(html_const, 'html.parser')
+            # 公司简介
+            cn_info = soup.find('div', class_='tHeader tHjob').find("div", class_="cn").find('p', class_='msg ltype').text
+            # 公司性质
+            cn_type = cn_info.strip().split('|')
+
+            # 主题信息
+            cn_maininfos = soup.find("div", class_="tCompany_main")
+            # 职位要求
+            position_tag = cn_maininfos.find('div', class_='jtag inbox')
+            # print(position_tag)
+
+            p_info = position_tag.find('div', class_='t1').find_all('span')
+            print(p_info)
+            # 工作经验
+            a = p_info[2].text
+            print(a)
+            b = len(p_info)
+            print(b)
+            #experience = exp for exp in p_info.find('div', class_='t1').find_all('span')
+            # if p_info.find('em', class_='i1'):
+            #     experience = p_info.find('div', class_='t1').find_all('span')
+
+            #print(experience)
+            print("experience")
+            # break
+            # 学历
+            # record_schooling = position_tag.find('div', class_='t1').find('span').find('em', class_='i2').text
+            # print(record_schooling)
+            # # 招聘人数
+            # hiring = position_tag.find('div', class_='t1').find('span').find('em', class_='i3').text
+            # print(hiring)
+            # print("hiring")
+            # # 公司福利
+            # welfare = position_tag.find('p', class_='t2').find_all('span')
+            # aa = position_tag.find('p', class_='t2').find('span')
+            # print(aa)
+            # print(welfare)
+
+            # 职位信息
+            position_info = cn_maininfos.find('div', class_='tBorderTop_box').find('div', class_='bmsg job_msg inbox')
+            print(position_info)
+
+            # 工作地址
+            work_place = cn_maininfos.find('div', class_='tBorderTop_box').find('p', class_='fp')
+            print(work_place)
+
+            break
+            return {
+                'cn_type': cn_type
+            }
 
 
 
@@ -175,7 +228,6 @@ class JobSpider:
 
         print("job keys %s" % self.job_keys)
         print("the current crawler: %s page" % self.page_num)
-
         if positions:
             ele_key = dr.find_element_by_id("kwdselectid")
             ele_position = dr.find_element_by_id("work_position_input")
@@ -196,7 +248,7 @@ class JobSpider:
             )
         except Exception, e:
             print(e)
-            break
+            #break
 
         # 强制等待
         time.sleep(5)
@@ -204,7 +256,7 @@ class JobSpider:
         html_const = dr.page_source
         # soup = BeautifulSoup(html_const, 'html.parser', from_encoding='utf-8')
         soup = BeautifulSoup(html_const, 'html.parser')
-
+        # print(soup)
         # html parsering
         self.htmlParser(soup)
 
@@ -232,7 +284,7 @@ class JobSpider:
         dr.implicitly_wait(10)
         # 找工作
         if isPosition == 1:
-            self.get_position_info(dr)
+            return self.get_position_info(dr)
         else:
             if positions:
                 self.get_job(dr, job_key, positions)
@@ -250,6 +302,7 @@ if __name__ == '__main__':
     root_url = 'https://www.51job.com/'
     job_key = u'python'
     positions = [u"北京", u"上海", u"广州", u"深圳"]
-    spider.job_spider(root_url, job_key, positions)
+    isPosition = 0
+    spider.job_spider(root_url, isPosition, job_key, positions)
 
 
