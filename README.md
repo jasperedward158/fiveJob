@@ -20,4 +20,13 @@ selenium3.x 调用浏览器必须下载一个类似不定的文件，比如firef
 安装 BeautifulSoup
 
     sudo pip install BeautifulSoup
-    
+
+安装 jieba 中文分词库
+
+    全自动安装：
+    easy_install jieba 或者pip install jieba / pip3 install jieba
+    半自动安装：
+    先下载 http://pypi.python.org/pypi/jieba/ ，解压后运行 python setup.py install
+    手动安装：将 jieba 目录放置于当前目录或者 site-packages 目录
+    通过 import jieba 来引用
+
