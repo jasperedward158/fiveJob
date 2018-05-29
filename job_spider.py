@@ -1,12 +1,16 @@
-# -*-coding: utf-8-*-
+# -*- coding: utf-8 -*-
 # https://github.com/chenjiandongx/51job-spider/blob/master/job_spider.py
 
 import os
 import re
+import sys
 
 import time
 import datetime
 import codecs
+import csv
+
+from pprint import pprint
 
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
@@ -17,6 +21,10 @@ from bs4 import BeautifulSoup
 import jieba
 
 import pymongo
+
+
+reload(sys)
+sys.setdefaultencoding("utf-8")
 
 class JobSpider:
     '''
@@ -31,7 +39,7 @@ class JobSpider:
         self.next_page = ''
         self.job_keys = u"python"
 
-        self.company = []
+        self.data = []
 
 
 
@@ -56,6 +64,27 @@ class JobSpider:
         job_id = collection.insert(data)
 
         print('写入数据：%s' % job_id)
+
+
+    def dataSelect(self):
+        '''
+        写入数据库
+        >show dbs
+        > use work
+        switched to db work
+        > db.createCollection('fiveJob')
+        > show collections
+        fiveJob
+        :param data:
+        :return:
+        '''
+        client = pymongo.MongoClient('localhost', 27017)
+        db = client.work
+        collection = db.fiveJob
+
+        jobs = collection.find()
+
+        return jobs
 
 
 
@@ -94,6 +123,7 @@ class JobSpider:
                 self.next_page = page.find('a', href=True)['href']
                 print(self.next_page)
 
+            # 爬取职位写入文件
             html_name = unicode(self.job_keys) + unicode(formdate) + u'.html'
             f = codecs.open(os.path.join("data", html_name), 'a+', 'utf-8')
 
@@ -132,7 +162,7 @@ class JobSpider:
                     'post': post,
                     'compay': compay,
                     'locate': locate,
-                    'salart': salary,
+                    'salary': salary,
                     'href': href,
                     'cn_type': position_content['cn_type'],
                     'experience': position_content['experience'],
@@ -142,6 +172,7 @@ class JobSpider:
                     'work_places': position_content['work_places'],
                     'date_time': date_time
                 }
+                self.data.append(data)
                 #print(data)
 
                 # 写入数据库
@@ -304,7 +335,27 @@ class JobSpider:
 
 
 
+    def post_salary_locate(self):
+        '''
+        薪资、工作地址。职位数据写入文件
+        :param self:
+        :return:
+        '''
 
+
+        file_path_salary = os.path.join("data", unicode("salary_locate.csv"))
+        content_salary = []
+        for d in self.dataSelect():
+            content_salary.append((unicode(d.get('salary')), unicode(d.get('post')), unicode(d.get('locate'))))
+        # pprint(content_salary)
+        print(sys.getdefaultencoding())
+        file_header = ['salary', 'post', 'locate']
+        with codecs.open(file_path_salary, "w+", 'utf-8') as f:
+            f_csv = csv.writer(f)
+            f_csv.writerow(file_header)
+            f_csv.writerows(content_salary)
+
+            f.close()
 
 if __name__ == '__main__':
 
@@ -314,6 +365,6 @@ if __name__ == '__main__':
     job_key = u'python'
     positions = [u"北京", u"上海", u"广州", u"深圳"]
     isPosition = 0
-    spider.job_spider(root_url, isPosition, job_key, positions)
+    # spider.job_spider(root_url, isPosition, job_key, positions)
 
-
+    spider.post_salary_locate()
