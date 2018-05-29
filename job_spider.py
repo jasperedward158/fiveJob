@@ -2,9 +2,11 @@
 # https://github.com/chenjiandongx/51job-spider/blob/master/job_spider.py
 
 import os
+import re
+
 import time
 import datetime
-import re
+import codecs
 
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
@@ -12,7 +14,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 from bs4 import BeautifulSoup
-import codecs
+import jieba
 
 import pymongo
 
@@ -92,7 +94,8 @@ class JobSpider:
                 self.next_page = page.find('a', href=True)['href']
                 print(self.next_page)
 
-            f = codecs.open(unicode(self.job_keys) + unicode(formdate) + u'.html', 'a+', 'utf-8')
+            html_name = unicode(self.job_keys) + unicode(formdate) + u'.html'
+            f = codecs.open(os.path.join("data", html_name), 'a+', 'utf-8')
 
             s1 = '==' * 50 + str(self.page_num) + '==' * 50
             f.write(s1)
@@ -117,7 +120,6 @@ class JobSpider:
                 isPosition = 1
                 position_content = self.job_spider(href, isPosition)
                 # print(position_content)
-                break
 
                 content = unicode(post) + '-' * 10 + unicode(compay) + '-' * 10 + unicode(locate) + '-' * 10 + unicode(
                     salary) + '-' * 5 + unicode(date_time) + '-' * 5 + href
@@ -132,8 +134,15 @@ class JobSpider:
                     'locate': locate,
                     'salart': salary,
                     'href': href,
+                    'cn_type': position_content['cn_type'],
+                    'experience': position_content['experience'],
+                    'record_schooling': position_content['record_schooling'],
+                    'welfare': position_content['welfare'],
+                    'position_infos': position_content['position_infos'],
+                    'work_places': position_content['work_places'],
                     'date_time': date_time
                 }
+                #print(data)
 
                 # 写入数据库
                 self.dataOutput(data)
@@ -160,7 +169,7 @@ class JobSpider:
         '''
         while True:
             html_const = dr.page_source
-            print("position info")
+            print("++++++++++++ position info +++++++++++++++")
             soup = BeautifulSoup(html_const, 'html.parser')
             # 公司简介
             cn_info = soup.find('div', class_='tHeader tHjob').find("div", class_="cn").find('p', class_='msg ltype').text
@@ -171,46 +180,49 @@ class JobSpider:
             cn_maininfos = soup.find("div", class_="tCompany_main")
             # 职位要求
             position_tag = cn_maininfos.find('div', class_='jtag inbox')
-            # print(position_tag)
 
             p_info = position_tag.find('div', class_='t1').find_all('span')
-            print(p_info)
             # 工作经验
-            a = p_info[2].text
-            print(a)
-            b = len(p_info)
-            print(b)
-            #experience = exp for exp in p_info.find('div', class_='t1').find_all('span')
-            # if p_info.find('em', class_='i1'):
-            #     experience = p_info.find('div', class_='t1').find_all('span')
-
-            #print(experience)
-            print("experience")
-            # break
+            i1 = p_info[0].find('em', class_='i1')
+            if not i1:
+                experience = '无经验要求'
+            else:
+                experience = p_info[0].text
             # 学历
-            # record_schooling = position_tag.find('div', class_='t1').find('span').find('em', class_='i2').text
-            # print(record_schooling)
-            # # 招聘人数
-            # hiring = position_tag.find('div', class_='t1').find('span').find('em', class_='i3').text
-            # print(hiring)
-            # print("hiring")
-            # # 公司福利
-            # welfare = position_tag.find('p', class_='t2').find_all('span')
-            # aa = position_tag.find('p', class_='t2').find('span')
-            # print(aa)
-            # print(welfare)
+            i2 = p_info[1].find('em', class_='i2')
+            if not i2:
+                record_schooling = '无学历要求'
+            else:
+                record_schooling = p_info[1].text
+
+            # 公司福利
+            try:
+                welfares = position_tag.find('p', class_='t2').find_all('span')
+                welfare = ''
+                for i in range(0, len(welfares)):
+                    welfare = welfare + welfares[i].string + ','
+            except:
+                welfare = ''
 
             # 职位信息
-            position_info = cn_maininfos.find('div', class_='tBorderTop_box').find('div', class_='bmsg job_msg inbox')
-            print(position_info)
-
+            position_info = cn_maininfos.find('div', class_='bmsg job_msg inbox').find_all('p')
+            position_infos = ''
+            for i in range(0, len(position_info)):
+                position_infos = position_infos + position_info[i].text
             # 工作地址
-            work_place = cn_maininfos.find('div', class_='tBorderTop_box').find('p', class_='fp')
-            print(work_place)
+            work_place = cn_maininfos.find_all('div', class_='tBorderTop_box')[2].find('div', class_='bmsg inbox')
+            if work_place:
+                work_places = work_place.text.strip()
+            else:
+                work_places = "上班地址："
 
-            break
             return {
-                'cn_type': cn_type
+                'cn_type': cn_type,
+                'experience': experience,
+                'record_schooling': record_schooling,
+                'welfare': welfare,
+                'position_infos': position_infos,
+                'work_places': work_places
             }
 
 
@@ -254,7 +266,6 @@ class JobSpider:
         time.sleep(5)
 
         html_const = dr.page_source
-        # soup = BeautifulSoup(html_const, 'html.parser', from_encoding='utf-8')
         soup = BeautifulSoup(html_const, 'html.parser')
         # print(soup)
         # html parsering
