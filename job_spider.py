@@ -11,6 +11,7 @@ import codecs
 import csv
 
 from pprint import pprint
+from collections import Counter
 
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
@@ -341,8 +342,6 @@ class JobSpider:
         :param self:
         :return:
         '''
-
-
         file_path_salary = os.path.join("data", unicode("salary_locate.csv"))
         content_salary = []
         for d in self.dataSelect():
@@ -354,8 +353,94 @@ class JobSpider:
             f_csv = csv.writer(f)
             f_csv.writerow(file_header)
             f_csv.writerows(content_salary)
-
             f.close()
+
+
+    @staticmethod
+    def post_salary_deal():
+        '''
+        薪酬统一处理
+        :return:
+        '''
+        month = []
+        year = []
+        thousand = []
+
+        with codecs.open(os.path.join('data', unicode("salary_locate.csv")), 'r', 'utf-8') as f:
+            f_csv = csv.reader(f)
+            for row in f_csv:
+                if '万/月' in row[0]:
+                    month.append((row[0][:-7], row[2], row[1]))
+                elif '万/年' in row[0]:
+                    year.append((row[0][:-7], row[2], row[1]))
+                elif '千/月' in row[0]:
+                    thousand.append((row[0][:-7], row[2], row[1]))
+
+        calculation = []
+        for m in month:
+            s = m[0].split("-")
+            calculation.append(
+                (
+                    round(
+                        (float(s[1]) - float(s[0]))*0.4 + float(s[0]),
+                        1
+                    ),
+                    m[1],
+                    m[2]
+                )
+            )
+
+        for y in year:
+            s = y[0].split("-")
+            calculation.append(
+                (
+                    round(
+                        ((float(s[1]) - float(s[0]))*0.4 + float(s[0]))/12,
+                        1
+                    ),
+                    y[1],
+                    y[2]
+                )
+            )
+
+        for t in thousand:
+            s = t[0].split("-")
+            calculation.append(
+                (
+                    round(
+                        ((float(s[1]) - float(s[0])) * 0.4 + float(s[0])) / 10,
+                        1
+                    ),
+                    t[1],
+                    t[2]
+                )
+            )
+
+        pprint(calculation)
+        with codecs.open(os.path.join('data', 'post_salary_deal.csv'), 'w+', 'utf-8') as f:
+            f_csv = csv.writer(f)
+            f_csv.writerows(calculation)
+
+
+
+    @staticmethod
+    def post_salary_counter():
+        '''
+        薪酬统计
+        :return:
+        '''
+        with codecs.open(os.path.join('data', 'post_salary_deal.csv'), 'r', 'utf-8') as f:
+            f_csv = csv.reader(f)
+            lst = [row[0] for row in f_csv]
+        counter = Counter(lst).most_common()
+        pprint(counter)
+
+        with codecs.open(os.path.join("data", "post_salary_counter1.csv"), 'w+', 'utf-8') as f:
+            f_csv = csv.writer(f)
+            f_csv.writerows(counter)
+
+
+
 
 if __name__ == '__main__':
 
@@ -367,4 +452,6 @@ if __name__ == '__main__':
     isPosition = 0
     # spider.job_spider(root_url, isPosition, job_key, positions)
 
-    spider.post_salary_locate()
+    # spider.post_salary_locate()
+    # spider.post_salary_deal()
+    spider.post_salary_counter()
