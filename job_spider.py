@@ -195,7 +195,7 @@ class JobSpider:
 
     def get_position_info(self, dr):
         '''
-        职位详情
+        抓取职位详情
         :param dr:
         :return:
         '''
@@ -247,6 +247,13 @@ class JobSpider:
                 work_places = work_place.text.strip()
             else:
                 work_places = "上班地址："
+
+            f_header = ['position_infos']
+            with codecs.open(os.path.join('data', unicode('post_position_desc.csv')), 'a+', 'utf-8') as f:
+                f_csv = csv.writer(f)
+                f_csv.writerow(f_header)
+                f_csv.writerow([position_infos])
+
 
             return {
                 'cn_type': cn_type,
@@ -440,6 +447,35 @@ class JobSpider:
             f_csv.writerows(counter)
 
 
+    @staticmethod
+    def post_position_desc_counter():
+        '''
+        职位描述统计
+        :return:
+        '''
+        post = codecs.open(os.path.join('data', unicode('post_position_desc.csv')), 'r', 'utf-8').read()
+        # pprint(post)
+        # 使用jieba分词
+        file_path = os.path.join("data", "user_position_desc.text")
+        jieba.load_userdict(file_path)
+
+        tag_list = jieba.cut(post, cut_all=False)
+        counter = dict()
+        for tag in tag_list:
+            counter[tag] = counter.get(tag, 1) + 1
+
+        counter_sort = sorted(
+            counter.items(), key=lambda value: value[1], reverse=True
+        )
+
+        with codecs.open(os.path.join("data", unicode("post_position_desc_counter.csv")), 'w+', 'utf-8') as f:
+            f_csv = csv.writer(f)
+            f_csv.writerows(counter_sort)
+
+
+        # print(counter_sort)
+
+
 
 
 if __name__ == '__main__':
@@ -454,4 +490,5 @@ if __name__ == '__main__':
 
     # spider.post_salary_locate()
     # spider.post_salary_deal()
-    spider.post_salary_counter()
+    # spider.post_salary_counter()
+    spider.post_position_desc_counter()
