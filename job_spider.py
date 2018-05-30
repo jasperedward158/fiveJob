@@ -159,6 +159,8 @@ class JobSpider:
                 f.write(content)
                 f.write('\r\n')
 
+                f.close()
+
                 data = {
                     'post': post,
                     'compay': compay,
@@ -248,11 +250,13 @@ class JobSpider:
             else:
                 work_places = "上班地址："
 
-            f_header = ['position_infos']
+            # f_header = ['position_infos']
             with codecs.open(os.path.join('data', unicode('post_position_desc.csv')), 'a+', 'utf-8') as f:
                 f_csv = csv.writer(f)
-                f_csv.writerow(f_header)
+                # f_csv.writerow(f_header)
                 f_csv.writerow([position_infos])
+
+                f.close()
 
 
             return {
@@ -360,6 +364,7 @@ class JobSpider:
             f_csv = csv.writer(f)
             f_csv.writerow(file_header)
             f_csv.writerows(content_salary)
+
             f.close()
 
 
@@ -382,6 +387,7 @@ class JobSpider:
                     year.append((row[0][:-7], row[2], row[1]))
                 elif '千/月' in row[0]:
                     thousand.append((row[0][:-7], row[2], row[1]))
+            f.close()
 
         calculation = []
         for m in month:
@@ -428,6 +434,8 @@ class JobSpider:
             f_csv = csv.writer(f)
             f_csv.writerows(calculation)
 
+            f.close()
+
 
 
     @staticmethod
@@ -445,6 +453,8 @@ class JobSpider:
         with codecs.open(os.path.join("data", "post_salary_counter1.csv"), 'w+', 'utf-8') as f:
             f_csv = csv.writer(f)
             f_csv.writerows(counter)
+
+            f.close()
 
 
     @staticmethod
@@ -472,8 +482,27 @@ class JobSpider:
             f_csv = csv.writer(f)
             f_csv.writerows(counter_sort)
 
+            f.close()
 
-        # print(counter_sort)
+
+    @staticmethod
+    def post_position_counter():
+        '''
+        职位统计
+        :return:
+        '''
+        lst = []
+        with codecs.open(os.path.join("data", unicode("salary_locate.csv")), 'r', 'utf-8') as f:
+            for row in csv.reader(f):
+                if row[1] != 'post':
+                    lst.append(row[1])
+
+        counter = Counter(lst)
+        counter_most = counter.most_common()
+        with codecs.open(os.path.join("data", unicode("post_position_counter.csv")), 'w+', 'utf-8') as f:
+            f_csv = csv.writer(f)
+            f_csv.writerows(counter_most)
+            f.close()
 
 
 
@@ -491,4 +520,5 @@ if __name__ == '__main__':
     # spider.post_salary_locate()
     # spider.post_salary_deal()
     # spider.post_salary_counter()
-    spider.post_position_desc_counter()
+    # spider.post_position_desc_counter()
+    spider.post_position_counter()
