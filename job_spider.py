@@ -546,6 +546,46 @@ class JobSpider:
 
 
 
+    def post_record_schooling(self):
+        '''
+        学历信息
+        :return:
+        '''
+        job_list = self.dataSelect()
+
+        record_schoolings = [(job["record_schooling"], ) for job in job_list]
+        with codecs.open(os.path.join("data", unicode("post_record_schooling.csv")), 'w+', 'utf-8') as f:
+            f_csv = csv.writer(f)
+            f_csv.writerows(record_schoolings)
+            f.close()
+
+
+
+
+    @staticmethod
+    def post_record_schooling_counter():
+        '''
+        学历统计
+        :return:
+        '''
+        lst = []
+        with codecs.open(os.path.join("data", unicode("post_record_schooling.csv")), 'r', 'utf-8') as f:
+            f_csv = csv.reader(f)
+            for row in f_csv:
+                lst.append(row[0])
+            f.close()
+
+        counter = Counter(lst)
+        counter_most = counter.most_common()
+
+        with codecs.open(os.path.join("data", unicode("post_record_schooling_counter.csv")), 'w+', 'utf-8') as f:
+            f_csv = csv.writer(f)
+            f_csv.writerows(counter_most)
+            f.close()
+
+
+
+
 
 
 
@@ -565,4 +605,7 @@ if __name__ == '__main__':
     # spider.post_salary_counter()
     # spider.post_position_desc_counter()
     # spider.post_position_counter()
-    spider.create_world_cloud()
+    # spider.create_world_cloud()
+
+    # spider.post_record_schooling()
+    spider.post_record_schooling_counter()
