@@ -54,3 +54,9 @@ matplotlib.pyplot是有状态的，亦即它会保存当前图片和作图区域
     sudo pip install matplotlib
 
     
+### 岗位分析
+
+#### 所有词语前200词生成词云
+
+![avatar](./images/wc.jpg)
+
