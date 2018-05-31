@@ -30,3 +30,27 @@ selenium3.x 调用浏览器必须下载一个类似不定的文件，比如firef
     手动安装：将 jieba 目录放置于当前目录或者 site-packages 目录
     通过 import jieba 来引用
 
+安装词云
+
+    一开始直接使用pip安装
+    pip install wordcloud
+    结果报错
+
+    “Failed building wheel for wordcloud”
+    正确的步骤应该是
+
+    xcode-select --install
+    pip install wordcloud
+    先安装xcode-select，再安装wordcloud
+
+    原因不明
+
+
+matplotlib.pyplot是一些命令行风格函数的集合，使matplotlib以类似于MATLAB的方式工作。
+每个pyplot函数对一幅图片(figure)做一些改动：比如创建新图片，在图片创建一个新的作图区域(plotting area)，
+在一个作图区域内画直线，给图添加标签(label)等。
+matplotlib.pyplot是有状态的，亦即它会保存当前图片和作图区域的状态，新的作图函数会作用在当前图片的状态基础之上。
+
+    sudo pip install matplotlib
+
+    

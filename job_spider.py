@@ -21,6 +21,10 @@ from selenium.webdriver.support.ui import WebDriverWait
 from bs4 import BeautifulSoup
 import jieba
 
+from wordcloud import WordCloud
+import matplotlib.pyplot as plt
+
+
 import pymongo
 
 
@@ -506,6 +510,45 @@ class JobSpider:
 
 
 
+    @staticmethod
+    def create_world_cloud():
+        '''
+        生成词云
+        :return:
+        '''
+        counter = {}
+        with codecs.open(os.path.join("data", unicode("post_position_desc_counter.csv")), 'r', 'utf-8') as f:
+            f_csv = csv.reader(f)
+            for row in f_csv:
+                counter[row[0]] = counter.get(row[0], int(row[1]))
+            f.close()
+
+        file_path = os.path.join("font", unicode("msyh.ttf"))
+
+        # WordCloud 快速生成词云
+        # width, height, margin 设置图片属性
+        # generate_from_frequencies(frequencies, max_font_size=None)[source]使用相应的频率生成词云
+        # font_path参数来设置字体集
+        # background_color参数为设置背景颜色,默认颜色为黑色
+        # ##
+        wc = WordCloud(background_color="blue",
+                       width=1200,
+                       height=800,
+                       font_path=file_path,
+                       max_words=100).generate_from_frequencies(counter)
+
+        plt.title("word cloud")  # 图片标题
+        plt.imshow(wc)           # 绘制图片
+        plt.axis("off")          # 不显示坐标
+        plt.show()
+
+        wc.to_file(os.path.join("images", "wc.jpg"))
+
+
+
+
+
+
 
 if __name__ == '__main__':
 
@@ -521,4 +564,5 @@ if __name__ == '__main__':
     # spider.post_salary_deal()
     # spider.post_salary_counter()
     # spider.post_position_desc_counter()
-    spider.post_position_counter()
+    # spider.post_position_counter()
+    spider.create_world_cloud()
