@@ -246,7 +246,8 @@ class JobSpider:
             position_info = cn_maininfos.find('div', class_='bmsg job_msg inbox').find_all('p')
             position_infos = ''
             for i in range(0, len(position_info)):
-                position_infos = position_infos + position_info[i].text
+                info = position_info[i].text.replace('"', '').replace('\t', '').strip()
+                position_infos = position_infos + info
             # 工作地址
             work_place = cn_maininfos.find_all('div', class_='tBorderTop_box')[2].find('div', class_='bmsg inbox')
             if work_place:
@@ -254,7 +255,6 @@ class JobSpider:
             else:
                 work_places = "上班地址："
 
-            # f_header = ['position_infos']
             with codecs.open(os.path.join('data', unicode('post_position_desc.csv')), 'a+', 'utf-8') as f:
                 f_csv = csv.writer(f)
                 # f_csv.writerow(f_header)
@@ -598,7 +598,7 @@ if __name__ == '__main__':
     job_key = u'python'
     positions = [u"北京", u"上海", u"广州", u"深圳"]
     isPosition = 0
-    # spider.job_spider(root_url, isPosition, job_key, positions)
+    spider.job_spider(root_url, isPosition, job_key, positions)
 
     # spider.post_salary_locate()
     # spider.post_salary_deal()
@@ -608,4 +608,4 @@ if __name__ == '__main__':
     # spider.create_world_cloud()
 
     # spider.post_record_schooling()
-    spider.post_record_schooling_counter()
+    # spider.post_record_schooling_counter()
