@@ -60,3 +60,7 @@ matplotlib.pyplot是有状态的，亦即它会保存当前图片和作图区域
 
 ![avatar](./images/wc.jpg)
 
+### 导出数据到文件
+
+    sudo mongoexport -d work -c fiveJob -o /Users/apple/Desktop/fiveJob.json --type json -f  "_id ,locate,record_schooling,date_time,cn_type,href,post,salary,work_places,compay,experience,position_infos"
+
