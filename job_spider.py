@@ -163,7 +163,7 @@ class JobSpider:
                 f.write(content)
                 f.write('\r\n')
 
-                f.close()
+                # f.close()
 
                 data = {
                     'post': post,
@@ -210,67 +210,77 @@ class JobSpider:
             print("++++++++++++ position info +++++++++++++++")
             soup = BeautifulSoup(html_const, 'html.parser')
             # 公司简介
-            cn_info = soup.find('div', class_='tHeader tHjob').find("div", class_="cn").find('p', class_='msg ltype').text
-            # 公司性质
-            cn_type = cn_info.strip().split('|')
-
-            # 主题信息
-            cn_maininfos = soup.find("div", class_="tCompany_main")
-            # 职位要求
-            position_tag = cn_maininfos.find('div', class_='jtag inbox')
-
-            p_info = position_tag.find('div', class_='t1').find_all('span')
-            # 工作经验
-            i1 = p_info[0].find('em', class_='i1')
-            if not i1:
-                experience = '无经验要求'
-            else:
-                experience = p_info[0].text
-            # 学历
-            i2 = p_info[1].find('em', class_='i2')
-            if not i2:
-                record_schooling = '无学历要求'
-            else:
-                record_schooling = p_info[1].text
-
-            # 公司福利
             try:
-                welfares = position_tag.find('p', class_='t2').find_all('span')
-                welfare = ''
-                for i in range(0, len(welfares)):
-                    welfare = welfare + welfares[i].string + ','
+                cn_info = soup.find('div', class_='tHeader tHjob').find("div", class_="cn").find('p', class_='msg ltype').text
+                # 公司性质
+                cn_type = cn_info.strip().split('|')
+
+                # 主题信息
+                cn_maininfos = soup.find("div", class_="tCompany_main")
+                # 职位要求
+                position_tag = cn_maininfos.find('div', class_='jtag inbox')
+
+                p_info = position_tag.find('div', class_='t1').find_all('span')
+                # 工作经验
+                i1 = p_info[0].find('em', class_='i1')
+                if not i1:
+                    experience = '无经验要求'
+                else:
+                    experience = p_info[0].text
+                # 学历
+                i2 = p_info[1].find('em', class_='i2')
+                if not i2:
+                    record_schooling = '无学历要求'
+                else:
+                    record_schooling = p_info[1].text
+
+                # 公司福利
+                try:
+                    welfares = position_tag.find('p', class_='t2').find_all('span')
+                    welfare = ''
+                    for i in range(0, len(welfares)):
+                        welfare = welfare + welfares[i].string + ','
+                except:
+                    welfare = ''
+
+                # 职位信息
+                position_info = cn_maininfos.find('div', class_='bmsg job_msg inbox').find_all('p')
+                position_infos = ''
+                for i in range(0, len(position_info)):
+                    info = position_info[i].text.replace('"', '').replace('\t', '').strip()
+                    position_infos = position_infos + info
+                # 工作地址
+                work_place = cn_maininfos.find_all('div', class_='tBorderTop_box')[2].find('div', class_='bmsg inbox')
+                if work_place:
+                    work_places = work_place.text.strip()
+                else:
+                    work_places = "上班地址："
+
+                with codecs.open(os.path.join('data', unicode('post_position_desc.csv')), 'a+', 'utf-8') as f:
+                    f_csv = csv.writer(f)
+                    # f_csv.writerow(f_header)
+                    f_csv.writerow([position_infos])
+
+                    # f.close()
+
+
+                return {
+                    'cn_type': cn_type,
+                    'experience': experience,
+                    'record_schooling': record_schooling,
+                    'welfare': welfare,
+                    'position_infos': position_infos,
+                    'work_places': work_places
+                }
             except:
-                welfare = ''
-
-            # 职位信息
-            position_info = cn_maininfos.find('div', class_='bmsg job_msg inbox').find_all('p')
-            position_infos = ''
-            for i in range(0, len(position_info)):
-                info = position_info[i].text.replace('"', '').replace('\t', '').strip()
-                position_infos = position_infos + info
-            # 工作地址
-            work_place = cn_maininfos.find_all('div', class_='tBorderTop_box')[2].find('div', class_='bmsg inbox')
-            if work_place:
-                work_places = work_place.text.strip()
-            else:
-                work_places = "上班地址："
-
-            with codecs.open(os.path.join('data', unicode('post_position_desc.csv')), 'a+', 'utf-8') as f:
-                f_csv = csv.writer(f)
-                # f_csv.writerow(f_header)
-                f_csv.writerow([position_infos])
-
-                f.close()
-
-
-            return {
-                'cn_type': cn_type,
-                'experience': experience,
-                'record_schooling': record_schooling,
-                'welfare': welfare,
-                'position_infos': position_infos,
-                'work_places': work_places
-            }
+                return {
+                    'cn_type': '',
+                    'experience': '',
+                    'record_schooling': '',
+                    'welfare': '',
+                    'position_infos': '',
+                    'work_places': ''
+                }
 
 
 
@@ -333,13 +343,13 @@ class JobSpider:
         # 驱动浏览器与python对接
         dr = webdriver.Chrome(executable_path=r"/Users/software/chromedriver.exe")
         # 休息50s
-        dr.set_page_load_timeout(50)
+        dr.set_page_load_timeout(100)
         # 打开51job首页
         dr.get(root_url)
         # 浏览器窗口最大化
         dr.maximize_window()
         # 控制间隔时间，等待浏览器最大化
-        dr.implicitly_wait(10)
+        dr.implicitly_wait(20)
         # 找工作
         if isPosition == 1:
             return self.get_position_info(dr)
@@ -369,7 +379,7 @@ class JobSpider:
             f_csv.writerow(file_header)
             f_csv.writerows(content_salary)
 
-            f.close()
+            # f.close()
 
 
     @staticmethod
@@ -391,7 +401,7 @@ class JobSpider:
                     year.append((row[0][:-7], row[2], row[1]))
                 elif '千/月' in row[0]:
                     thousand.append((row[0][:-7], row[2], row[1]))
-            f.close()
+            # f.close()
 
         calculation = []
         for m in month:
@@ -438,7 +448,7 @@ class JobSpider:
             f_csv = csv.writer(f)
             f_csv.writerows(calculation)
 
-            f.close()
+            # f.close()
 
 
 
@@ -458,7 +468,7 @@ class JobSpider:
             f_csv = csv.writer(f)
             f_csv.writerows(counter)
 
-            f.close()
+            # f.close()
 
 
     @staticmethod
@@ -486,7 +496,8 @@ class JobSpider:
             f_csv = csv.writer(f)
             f_csv.writerows(counter_sort)
 
-            f.close()
+            #
+            # f.close()
 
 
     @staticmethod
@@ -506,7 +517,7 @@ class JobSpider:
         with codecs.open(os.path.join("data", unicode("post_position_counter.csv")), 'w+', 'utf-8') as f:
             f_csv = csv.writer(f)
             f_csv.writerows(counter_most)
-            f.close()
+            # f.close()
 
 
 
@@ -521,7 +532,7 @@ class JobSpider:
             f_csv = csv.reader(f)
             for row in f_csv:
                 counter[row[0]] = counter.get(row[0], int(row[1]))
-            f.close()
+            # f.close()
 
         file_path = os.path.join("font", unicode("msyh.ttf"))
 
@@ -557,7 +568,7 @@ class JobSpider:
         with codecs.open(os.path.join("data", unicode("post_record_schooling.csv")), 'w+', 'utf-8') as f:
             f_csv = csv.writer(f)
             f_csv.writerows(record_schoolings)
-            f.close()
+            # f.close()
 
 
 
@@ -573,7 +584,7 @@ class JobSpider:
             f_csv = csv.reader(f)
             for row in f_csv:
                 lst.append(row[0])
-            f.close()
+            # f.close()
 
         counter = Counter(lst)
         counter_most = counter.most_common()
@@ -581,7 +592,7 @@ class JobSpider:
         with codecs.open(os.path.join("data", unicode("post_record_schooling_counter.csv")), 'w+', 'utf-8') as f:
             f_csv = csv.writer(f)
             f_csv.writerows(counter_most)
-            f.close()
+            # f.close()
 
 
 
@@ -598,7 +609,7 @@ if __name__ == '__main__':
     job_key = u'python'
     positions = [u"北京", u"上海", u"广州", u"深圳"]
     isPosition = 0
-    spider.job_spider(root_url, isPosition, job_key, positions)
+    # spider.job_spider(root_url, isPosition, job_key, positions)
 
     # spider.post_salary_locate()
     # spider.post_salary_deal()
@@ -608,4 +619,4 @@ if __name__ == '__main__':
     # spider.create_world_cloud()
 
     # spider.post_record_schooling()
-    # spider.post_record_schooling_counter()
+    spider.post_record_schooling_counter()
